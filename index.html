@@ -6,6 +6,8 @@
     <title>Finanças Pro - Organização Financeira</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Adicionando Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         /* Reset e Variáveis */
         * {
@@ -27,13 +29,16 @@
             --danger: #ef4444;
             --danger-light: #fee2e2;
             --warning: #f59e0b;
+            --warning-light: #fef3c7;
             --border: #e2e8f0;
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
             --radius: 16px;
             --radius-md: 12px;
             --radius-sm: 8px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         [data-theme="dark"] {
@@ -48,34 +53,46 @@
             --success-light: #064e3b;
             --danger: #f87171;
             --danger-light: #7f1d1d;
+            --warning: #fbbf24;
+            --warning-light: #78350f;
             --border: #334155;
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5);
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-primary) 100%);
+            background: var(--bg-primary);
             color: var(--text-main);
             padding: 2rem 1rem;
             min-height: 100vh;
+            transition: var(--transition);
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
         /* Header */
         header {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
             flex-wrap: wrap;
-            gap: 1rem;
-            padding: 1rem 0;
+            gap: 1.5rem;
         }
 
         .logo-area h1 {
@@ -123,79 +140,86 @@
             outline: none;
             cursor: pointer;
             font-size: 0.875rem;
-            transition: all 0.2s;
+            transition: var(--transition);
         }
 
         select:hover {
             border-color: var(--primary);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
         }
 
-        .theme-toggle {
-            padding: 0.625rem 1rem;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            background-color: var(--bg-card);
-            font-weight: 500;
-            color: var(--text-main);
-            outline: none;
-            cursor: pointer;
+        .button-group {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            transition: all 0.2s;
         }
 
-        .theme-toggle:hover {
+        .icon-btn {
+            padding: 0.625rem 0.875rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background-color: var(--bg-card);
+            color: var(--text-main);
+            outline: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+            font-size: 0.875rem;
+        }
+
+        .icon-btn:hover {
             border-color: var(--primary);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
         }
 
-        /* Dashboard Cards */
+        /* Dashboard Stats */
         .dashboard {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
 
-        .card {
+        .stat-card {
             background: var(--bg-card);
-            padding: 1.5rem;
             border-radius: var(--radius);
             border: 1px solid var(--border);
-            transition: all 0.3s;
+            padding: 1.5rem;
+            transition: var(--transition);
             position: relative;
             overflow: hidden;
         }
 
-        .card::before {
+        .stat-card::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             height: 4px;
-            background: var(--primary);
         }
 
-        .card.receitas::before { background: var(--success); }
-        .card.despesas::before { background: var(--danger); }
-        .card.saldo::before { background: var(--primary); }
+        .stat-card.receitas::before { background: linear-gradient(90deg, var(--success), #34d399); }
+        .stat-card.despesas::before { background: linear-gradient(90deg, var(--danger), #f87171); }
+        .stat-card.saldo::before { background: linear-gradient(90deg, var(--primary), #60a5fa); }
 
-        .card:hover {
+        .stat-card:hover {
             transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--shadow-xl);
         }
 
-        .card-header {
+        .stat-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1rem;
         }
 
-        .card-header h3 {
+        .stat-header h3 {
             font-size: 0.875rem;
             font-weight: 600;
             color: var(--text-muted);
@@ -203,20 +227,73 @@
             letter-spacing: 0.05em;
         }
 
-        .card-header i {
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1.5rem;
-            opacity: 0.5;
         }
 
-        .card .value {
+        .stat-card.receitas .stat-icon {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .stat-card.despesas .stat-icon {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .stat-card.saldo .stat-icon {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .stat-value {
             font-size: 2rem;
             font-weight: 800;
             letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
         }
 
-        .card.receitas .value { color: var(--success); }
-        .card.despesas .value { color: var(--danger); }
-        .card.saldo .value { color: var(--primary); }
+        .stat-change {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Chart Section */
+        .chart-section {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .chart-header h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            max-height: 400px;
+        }
+
+        canvas {
+            max-height: 350px;
+        }
 
         /* Tabs */
         .tabs {
@@ -231,7 +308,7 @@
 
         .tab-btn {
             flex: 1;
-            padding: 0.75rem 1.5rem;
+            padding: 0.875rem 1.5rem;
             border: none;
             background: none;
             font-size: 0.9375rem;
@@ -239,7 +316,7 @@
             color: var(--text-muted);
             cursor: pointer;
             border-radius: var(--radius-sm);
-            transition: all 0.2s;
+            transition: var(--transition);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -251,9 +328,9 @@
         }
 
         .tab-btn.active {
-            background-color: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow-md);
         }
 
         /* Content Sections */
@@ -265,9 +342,10 @@
 
         .content-section.active {
             display: grid;
+            animation: slideIn 0.3s ease-out;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 968px) {
             .content-section {
                 grid-template-columns: 1fr;
                 gap: 1.5rem;
@@ -281,6 +359,8 @@
             border-radius: var(--radius-md);
             border: 1px solid var(--border);
             height: fit-content;
+            position: sticky;
+            top: 1rem;
         }
 
         .form-box h3 {
@@ -312,10 +392,10 @@
             border: 1.5px solid var(--border);
             border-radius: var(--radius-sm);
             outline: none;
-            background-color: var(--input-bg);
+            background-color: var(--bg-primary);
             color: var(--text-main);
             font-size: 0.875rem;
-            transition: all 0.2s;
+            transition: var(--transition);
         }
 
         .form-group input:focus {
@@ -331,6 +411,7 @@
             font-size: 0.875rem;
             font-weight: 500;
             color: var(--text-main);
+            padding: 0.5rem 0;
         }
 
         .checkbox-group input[type="checkbox"] {
@@ -347,7 +428,7 @@
             font-weight: 700;
             font-size: 0.875rem;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: var(--transition);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -404,7 +485,7 @@
 
         .item-list {
             list-style: none;
-            max-height: 500px;
+            max-height: 550px;
             overflow-y: auto;
         }
 
@@ -429,12 +510,14 @@
             padding: 1rem;
             margin-bottom: 0.5rem;
             border-radius: var(--radius-sm);
-            transition: all 0.2s;
+            transition: var(--transition);
             background: var(--bg-primary);
+            border: 1px solid transparent;
         }
 
         .item-list li:hover {
             transform: translateX(4px);
+            border-color: var(--border);
             box-shadow: var(--shadow-sm);
         }
 
@@ -454,10 +537,6 @@
             display: inline-flex;
             align-items: center;
             gap: 0.25rem;
-        }
-
-        .item-info .item-date i {
-            font-size: 0.6875rem;
         }
 
         .badge {
@@ -492,7 +571,7 @@
             font-size: 1.25rem;
             padding: 0.25rem;
             border-radius: 4px;
-            transition: all 0.2s;
+            transition: var(--transition);
             width: 32px;
             height: 32px;
             display: flex;
@@ -522,7 +601,39 @@
             font-size: 0.875rem;
         }
 
-        /* Animações */
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            animation: slideUp 0.3s ease-out;
+            max-width: 350px;
+        }
+
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error { border-left: 4px solid var(--danger); }
+        .toast.info { border-left: 4px solid var(--primary); }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -534,8 +645,44 @@
             }
         }
 
-        .content-section.active {
-            animation: slideIn 0.3s ease-out;
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+            transition: width 0.3s ease;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .header-controls {
+                justify-content: space-between;
+            }
+            
+            .stat-value {
+                font-size: 1.5rem;
+            }
+            
+            .tab-btn span {
+                display: none;
+            }
+            
+            .tab-btn i {
+                margin: 0;
+            }
         }
     </style>
 </head>
@@ -543,66 +690,106 @@
 
 <div class="container">
     <header>
-        <div class="logo-area">
-            <h1><i class="fas fa-chart-line"></i> Finanças Pro</h1>
-            <p>Organize suas finanças com inteligência</p>
-        </div>
-        <div class="header-controls">
-            <div class="select-wrapper">
-                <i class="fas fa-calendar-alt"></i>
-                <select id="monthSelect" onchange="changeMonth()">
-                    <option value="0">Janeiro 2026</option>
-                    <option value="1">Fevereiro 2026</option>
-                    <option value="2">Março 2026</option>
-                    <option value="3">Abril 2026</option>
-                    <option value="4">Maio 2026</option>
-                    <option value="5">Junho 2026</option>
-                    <option value="6">Julho 2026</option>
-                    <option value="7">Agosto 2026</option>
-                    <option value="8">Setembro 2026</option>
-                    <option value="9">Outubro 2026</option>
-                    <option value="10">Novembro 2026</option>
-                    <option value="11">Dezembro 2026</option>
-                </select>
+        <div class="header-content">
+            <div class="logo-area">
+                <h1><i class="fas fa-chart-line"></i> Finanças Pro</h1>
+                <p>Organize suas finanças com inteligência</p>
             </div>
-            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">
-                <i class="fas fa-moon"></i> Modo Escuro
-            </button>
+            <div class="header-controls">
+                <div class="select-wrapper">
+                    <i class="fas fa-calendar-alt"></i>
+                    <select id="monthSelect" onchange="changeMonth()">
+                        <option value="0">Janeiro 2026</option>
+                        <option value="1">Fevereiro 2026</option>
+                        <option value="2">Março 2026</option>
+                        <option value="3">Abril 2026</option>
+                        <option value="4">Maio 2026</option>
+                        <option value="5">Junho 2026</option>
+                        <option value="6">Julho 2026</option>
+                        <option value="7">Agosto 2026</option>
+                        <option value="8">Setembro 2026</option>
+                        <option value="9">Outubro 2026</option>
+                        <option value="10">Novembro 2026</option>
+                        <option value="11">Dezembro 2026</option>
+                    </select>
+                </div>
+                <div class="button-group">
+                    <button class="icon-btn" onclick="toggleTheme()" id="themeBtn">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="icon-btn" onclick="toggleVisibility()" id="visibilityBtn">
+                        <i class="fas fa-eye-slash"></i>
+                    </button>
+                </div>
+            </div>
         </div>
     </header>
 
-    <!-- Dashboard -->
+    <!-- Dashboard Stats -->
     <div class="dashboard">
-        <div class="card receitas">
-            <div class="card-header">
+        <div class="stat-card receitas">
+            <div class="stat-header">
                 <h3>Receitas Totais</h3>
-                <i class="fas fa-arrow-up"></i>
+                <div class="stat-icon">
+                    <i class="fas fa-arrow-up"></i>
+                </div>
             </div>
-            <div class="value" id="totalReceitas">R$ 0,00</div>
+            <div class="stat-value" id="totalReceitas">R$ 0,00</div>
+            <div class="stat-change" id="receitasChange">
+                <i class="fas fa-chart-line"></i> Mês atual
+            </div>
         </div>
-        <div class="card despesas">
-            <div class="card-header">
+        <div class="stat-card despesas">
+            <div class="stat-header">
                 <h3>Despesas Totais</h3>
-                <i class="fas fa-arrow-down"></i>
+                <div class="stat-icon">
+                    <i class="fas fa-arrow-down"></i>
+                </div>
             </div>
-            <div class="value" id="totalDespesas">R$ 0,00</div>
+            <div class="stat-value" id="totalDespesas">R$ 0,00</div>
+            <div class="stat-change" id="despesasChange">
+                <i class="fas fa-chart-line"></i> Mês atual
+            </div>
         </div>
-        <div class="card saldo">
-            <div class="card-header">
+        <div class="stat-card saldo">
+            <div class="stat-header">
                 <h3>Saldo do Mês</h3>
-                <i class="fas fa-wallet"></i>
+                <div class="stat-icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
             </div>
-            <div class="value" id="saldoTotal">R$ 0,00</div>
+            <div class="stat-value" id="saldoTotal">R$ 0,00</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="chart-section">
+        <div class="chart-header">
+            <h3><i class="fas fa-chart-pie"></i> Análise Financeira</h3>
+            <div>
+                <span class="icon-btn" onclick="changeChartType('bar')" style="width: auto; padding: 0.5rem 1rem;">
+                    <i class="fas fa-chart-bar"></i> Barras
+                </span>
+                <span class="icon-btn" onclick="changeChartType('line')" style="width: auto; padding: 0.5rem 1rem;">
+                    <i class="fas fa-chart-line"></i> Linhas
+                </span>
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="financeChart"></canvas>
         </div>
     </div>
 
     <!-- Tabs -->
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('receitas')">
-            <i class="fas fa-plus-circle"></i> Receitas
+            <i class="fas fa-plus-circle"></i> <span>Receitas</span>
         </button>
         <button class="tab-btn" onclick="switchTab('despesas')">
-            <i class="fas fa-minus-circle"></i> Despesas
+            <i class="fas fa-minus-circle"></i> <span>Despesas</span>
         </button>
     </div>
 
@@ -684,6 +871,9 @@
 <script>
     let financeData = JSON.parse(localStorage.getItem('financeData_2026')) || Array.from({ length: 12 }, () => ({ receitas: [], despesas: [] }));
     let currentMonth = new Date().getMonth();
+    let valuesHidden = localStorage.getItem('valuesHidden') === 'true';
+    let chartInstance = null;
+    let currentChartType = 'bar';
 
     document.getElementById('monthSelect').value = currentMonth;
 
@@ -691,6 +881,7 @@
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
     updateThemeButton(savedTheme);
+    updateVisibilityButton(valuesHidden);
 
     function toggleTheme() {
         const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -698,15 +889,44 @@
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
         updateThemeButton(newTheme);
+        updateChart();
     }
 
     function updateThemeButton(theme) {
         const btn = document.getElementById('themeBtn');
         if (theme === 'dark') {
-            btn.innerHTML = '<i class="fas fa-sun"></i> Modo Claro';
+            btn.innerHTML = '<i class="fas fa-sun"></i>';
         } else {
-            btn.innerHTML = '<i class="fas fa-moon"></i> Modo Escuro';
+            btn.innerHTML = '<i class="fas fa-moon"></i>';
         }
+    }
+
+    function toggleVisibility() {
+        valuesHidden = !valuesHidden;
+        localStorage.setItem('valuesHidden', valuesHidden);
+        updateVisibilityButton(valuesHidden);
+        updateUI();
+        updateChart();
+    }
+
+    function updateVisibilityButton(isHidden) {
+        const btn = document.getElementById('visibilityBtn');
+        if (isHidden) {
+            btn.innerHTML = '<i class="fas fa-eye"></i>';
+        } else {
+            btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+        }
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+            <span>${message}</span>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
     }
 
     function setInputsDate() {
@@ -735,6 +955,7 @@
         currentMonth = parseInt(document.getElementById('monthSelect').value);
         setInputsDate();
         updateUI();
+        updateChart();
     }
 
     function formatDateToShow(dateString) {
@@ -751,6 +972,11 @@
         const val = parseFloat(type === 'receita' ? document.getElementById('recVal').value : document.getElementById('despVal').value);
         const dateInput = type === 'receita' ? document.getElementById('recDate').value : document.getElementById('despDate').value;
         const isFixa = type === 'receita' ? document.getElementById('recFixa').checked : document.getElementById('despFixa').checked;
+        
+        if(val <= 0) {
+            showToast('Valor deve ser maior que zero!', 'error');
+            return;
+        }
         
         const id = Date.now().toString();
 
@@ -771,22 +997,17 @@
                     isFixa 
                 });
             }
+            showToast(`${type === 'receita' ? 'Receita' : 'Despesa'} fixa adicionada para todos os meses!`, 'success');
         } else {
             financeData[currentMonth][type + 's'].push({ id, desc, val, date: dateInput, isFixa });
+            showToast(`${type === 'receita' ? 'Receita' : 'Despesa'} adicionada com sucesso!`, 'success');
         }
 
         e.target.reset();
         setInputsDate();
         saveData();
         updateUI();
-        
-        // Show success feedback
-        const btn = e.target.querySelector('button[type="submit"]');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-check"></i> Adicionado!';
-        setTimeout(() => {
-            btn.innerHTML = originalText;
-        }, 1000);
+        updateChart();
     }
 
     function deleteTransaction(id, type) {
@@ -794,6 +1015,8 @@
             financeData[currentMonth][type + 's'] = financeData[currentMonth][type + 's'].filter(item => item.id !== id);
             saveData();
             updateUI();
+            updateChart();
+            showToast('Item excluído com sucesso!', 'success');
         }
     }
 
@@ -802,6 +1025,7 @@
     }
 
     function formatCurrency(value) {
+        if (valuesHidden) return 'R$ ••••••';
         return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
@@ -835,7 +1059,7 @@
                             ${item.isFixa ? '<span class="badge"><i class="fas fa-copy"></i> Fixa</span>' : ''}
                         </div>
                         <div class="item-value-delete">
-                            <span style="color: var(--success);">+ ${formatCurrency(item.val)}</span>
+                            <span style="color: var(--success);">${valuesHidden ? '' : '+ '}${formatCurrency(item.val)}</span>
                             <button class="delete-btn" onclick="deleteTransaction('${item.id}', 'receita')">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
@@ -872,7 +1096,7 @@
                             ${item.isFixa ? '<span class="badge"><i class="fas fa-copy"></i> Fixa</span>' : ''}
                         </div>
                         <div class="item-value-delete">
-                            <span style="color: var(--danger);">- ${formatCurrency(item.val)}</span>
+                            <span style="color: var(--danger);">${valuesHidden ? '' : '- '}${formatCurrency(item.val)}</span>
                             <button class="delete-btn" onclick="deleteTransaction('${item.id}', 'despesa')">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
@@ -888,6 +1112,12 @@
         document.getElementById('totalDespesas').innerText = formatCurrency(totalDesp);
         document.getElementById('saldoTotal').innerText = formatCurrency(saldo);
         
+        // Update progress bar (percentage of expenses vs income)
+        const percentage = totalRec > 0 ? (totalDesp / totalRec) * 100 : 0;
+        const progressFill = document.getElementById('progressFill');
+        progressFill.style.width = `${Math.min(percentage, 100)}%`;
+        progressFill.style.background = percentage > 80 ? 'linear-gradient(90deg, var(--warning), var(--danger))' : 'linear-gradient(90deg, var(--primary), var(--primary-dark))';
+        
         const saldoElement = document.getElementById('saldoTotal');
         if(saldo < 0) {
             saldoElement.style.color = 'var(--danger)';
@@ -896,6 +1126,119 @@
         } else {
             saldoElement.style.color = 'var(--text-main)';
         }
+        
+        // Update trend indicators
+        const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+        const prevRec = financeData[prevMonth].receitas.reduce((sum, item) => sum + item.val, 0);
+        const prevDesp = financeData[prevMonth].despesas.reduce((sum, item) => sum + item.val, 0);
+        
+        const recChange = ((totalRec - prevRec) / (prevRec || 1)) * 100;
+        const despChange = ((totalDesp - prevDesp) / (prevDesp || 1)) * 100;
+        
+        document.getElementById('receitasChange').innerHTML = `
+            <i class="fas ${recChange >= 0 ? 'fa-arrow-up' : 'fa-arrow-down'}"></i> 
+            ${Math.abs(recChange).toFixed(1)}% vs mês anterior
+        `;
+        document.getElementById('despesasChange').innerHTML = `
+            <i class="fas ${despChange <= 0 ? 'fa-arrow-down' : 'fa-arrow-up'}"></i> 
+            ${Math.abs(despChange).toFixed(1)}% vs mês anterior
+        `;
+    }
+    
+    function updateChart() {
+        const ctx = document.getElementById('financeChart').getContext('2d');
+        const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        
+        const receitasPorMes = financeData.map(month => 
+            month.receitas.reduce((sum, item) => sum + item.val, 0)
+        );
+        const despesasPorMes = financeData.map(month => 
+            month.despesas.reduce((sum, item) => sum + item.val, 0)
+        );
+        
+        if (chartInstance) {
+            chartInstance.destroy();
+        }
+        
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const textColor = isDark ? '#f1f5f9' : '#1e293b';
+        const gridColor = isDark ? '#334155' : '#e2e8f0';
+        
+        chartInstance = new Chart(ctx, {
+            type: currentChartType,
+            data: {
+                labels: months,
+                datasets: [
+                    {
+                        label: 'Receitas',
+                        data: receitasPorMes,
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        borderColor: '#10b981',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: currentChartType === 'line'
+                    },
+                    {
+                        label: 'Despesas',
+                        data: despesasPorMes,
+                        backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                        borderColor: '#ef4444',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: currentChartType === 'line'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: textColor,
+                            font: { family: 'Inter', size: 12 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed.y);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: gridColor },
+                        ticks: {
+                            color: textColor,
+                            callback: function(value) {
+                                return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(value);
+                            }
+                        }
+                    },
+                    x: {
+                        grid: { color: gridColor },
+                        ticks: { color: textColor }
+                    }
+                }
+            }
+        });
+    }
+    
+    function changeChartType(type) {
+        currentChartType = type;
+        updateChart();
+        showToast(`Gráfico alterado para ${type === 'bar' ? 'barras' : 'linhas'}`, 'info');
     }
 
     function escapeHtml(text) {
@@ -906,6 +1249,7 @@
 
     setInputsDate();
     updateUI();
+    updateChart();
 </script>
 
 </body>
