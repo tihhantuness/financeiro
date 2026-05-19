@@ -74,6 +74,12 @@
             transition: background 0.2s, color 0.2s;
         }
 
+        /* 🔒 Classe Utilitária de Alto Nível para Travar o Scroll de Fundo */
+        body.modal-open {
+            overflow: hidden !important;
+            touch-action: none !important;
+        }
+
         .container {
             max-width: 1440px;
             margin: 0 auto;
@@ -179,6 +185,31 @@
             position: relative;
         }
 
+        .notif-btn-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: var(--danger);
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 700;
+            min-width: 17px;
+            height: 17px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3px;
+            border: 1.5px solid var(--bg-card);
+            z-index: 10;
+            pointer-events: none;
+        }
+
         .icon-only-btn:hover {
             background: var(--primary-light);
             border-color: var(--primary);
@@ -201,32 +232,28 @@
             z-index: 1000;
         }
 
-        #configMenu, #backupActionMenu, #statisticsMenu {
+        #configMenu {
             right: -10px;
-        }
-
-        /* Trava dos cards de confirmação centralizados na tela */
-        #deleteConfirmMenu, #resetConfirmMenu {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            max-width: 320px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-            border-radius: 20px;
-            padding: 1.25rem;
-            background: var(--bg-card);
-            z-index: 2500;
-        }
-
-        #themeMenu {
-            right: -60px;
         }
 
         #notifMenu {
             right: -5px;
             width: 300px;
+        }
+
+        #deleteConfirmMenu, #resetConfirmMenu, #achievementsMenu, #statisticsMenu, #backupActionMenu, #themeDropdownMenu {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 92%;
+            max-width: 340px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+            border-radius: 20px;
+            padding: 1.25rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            z-index: 2500;
         }
 
         .dropdown-glass button {
@@ -698,22 +725,27 @@
                     <div class="dropdown-header"><i class="fas fa-cog"></i> Configurações</div>
                     <button id="achievementsTriggerBtn"><i class="fas fa-trophy" style="color: #eab308;"></i> Ver Conquistas</button>
                     <button id="statsTriggerBtn"><i class="fas fa-chart-pie" style="color: #3b82f6;"></i> Ver Estatísticas</button>
+                    <button id="themeTriggerBtn"><i class="fas fa-palette" style="color: #a855f7;"></i> Tema do Aplicativo</button>
                     <button id="backupTriggerBtn"><i class="fas fa-cloud" style="color: var(--primary);"></i> Gerenciar Backup</button>
-                    <!-- Redireciona nativamente para o novo card centralizado customizado -->
                     <button id="resetTriggerBtn" style="color: var(--danger);"><i class="fas fa-exclamation-triangle"></i> Redefinir App</button>
                 </div>
 
-                <!-- Card de Confirmação de Exclusão Centralizado -->
+                <div id="themeDropdownMenu" class="dropdown-glass" style="display: none;">
+                    <div class="dropdown-header"><i class="fas fa-palette"></i> Escolha a Aparência</div>
+                    <button onclick="setAppTheme('light')">🌞 Modo Claro</button>
+                    <button onclick="setAppTheme('dark')">🌙 Modo Escuro</button>
+                    <button onclick="setAppTheme('system')">🖥️ Padrão do Sistema</button>
+                </div>
+
                 <div id="deleteConfirmMenu" class="dropdown-glass" style="display: none;">
                     <div class="dropdown-header" style="color: var(--danger); font-weight:700;"><i class="fas fa-trash-alt"></i> Excluir Registro?</div>
                     <div style="padding: 0.5rem; font-size: 0.8rem; opacity: 0.85; text-align: center; margin-bottom: 0.5rem; color: var(--text-main);">Tem certeza que deseja apagar permanentemente este item?</div>
                     <div style="display:flex; gap: 6px;">
                         <button onclick="confirmCustomDelete()" style="background: var(--danger); color: white; text-align:center; border-radius:8px; padding: 0.4rem; width:100%;">Sim, Excluir</button>
-                        <button onclick="document.getElementById('deleteConfirmMenu').style.display='none'" style="background: var(--border); color: var(--text-main); text-align:center; border-radius:8px; padding: 0.4rem; width:100%;">Cancelar</button>
+                        <button onclick="document.getElementById('deleteConfirmMenu').style.display='none'; document.body.classList.remove('modal-open');" style="background: var(--border); color: var(--text-main); text-align:center; border-radius:8px; padding: 0.4rem; width:100%;">Cancelar</button>
                     </div>
                 </div>
 
-                <!-- Novo Card de Confirmação de Redefinição Crítica Centralizado -->
                 <div id="resetConfirmMenu" class="dropdown-glass" style="display: none;">
                     <div class="dropdown-header" id="resetHeaderTitle" style="color: var(--danger); font-weight:700;"><i class="fas fa-exclamation-triangle"></i> Redefinir Dados?</div>
                     <div id="resetBodyText" style="padding: 0.5rem; font-size: 0.8rem; opacity: 0.85; text-align: center; margin-bottom: 0.5rem; color: var(--text-main); line-height: 1.4;">Isso apagará permanentemente todas as suas receitas e despesas. Deseja continuar?</div>
@@ -723,7 +755,7 @@
                     </div>
                 </div>
 
-                <div id="statisticsMenu" class="dropdown-glass wide" style="display: none; top: calc(100% + 8px); right: 0;">
+                <div id="statisticsMenu" class="dropdown-glass" style="display: none;">
                     <div class="dropdown-header">📊 Resumo Acumulado 2026</div>
                     <div class="stats-box-menu" id="statisticsListArea"></div>
                 </div>
@@ -735,7 +767,7 @@
                     <button onclick="document.getElementById('restoreFile').click()"><i class="fas fa-file-import"></i> Importar Dados</button>
                 </div>
 
-                <div id="achievementsMenu" class="dropdown-glass wide" style="display: none; top: calc(100% + 8px); right: 0;">
+                <div id="achievementsMenu" class="dropdown-glass" style="display: none;">
                     <div class="dropdown-header">🏆 Seu Progresso de Conquistas</div>
                     <div class="achievements-box" id="achievementsListArea"></div>
                 </div>
@@ -747,17 +779,9 @@
                 <select id="monthSelect" class="select-modern" onchange="changeMonth()"></select>
             </div>
             <div class="right-buttons">
-                <div class="relative">
-                    <button class="icon-btn icon-only-btn" id="themeBtn"><i class="fas fa-palette"></i></button>
-                    <div id="themeMenu" class="dropdown-glass" style="display: none;">
-                        <div class="dropdown-header">Aparência</div>
-                        <button onclick="setAppTheme('light')">🌞 Claro</button>
-                        <button onclick="setAppTheme('dark')">🌙 Escuro</button>
-                        <button onclick="setAppTheme('system')">🖥️ Sistema</button>
-                    </div>
-                </div>
                 <button class="icon-only-btn" id="visibilityBtn"><i class="fas fa-eye-slash"></i></button>
-                <div class="relative">
+                
+                <div class="notif-btn-wrapper">
                     <button class="icon-only-btn" id="notificationBtn"><i class="fas fa-bell"></i></button>
                     <span id="notifBadge" class="notif-badge" style="display: none;">0</span>
                     <div id="notifMenu" class="dropdown-glass" style="display: none;">
@@ -838,7 +862,6 @@
     let pendingDeleteId = null;
     let pendingDeleteType = null;
     
-    // Controle do estado interno de dupla confirmação do reset
     let customResetWorkflowStep = 1;
 
     function initUI(){
@@ -867,9 +890,7 @@
             if(selectedCat === '📦 Outros') {
                 let customText = document.getElementById('despCustomCat').value.trim();
                 categoria = customText ? '📦 ' + customText : '📦 Outros';
-            } else {
-                categoria = selectedCat;
-            }
+            } else { categoria = selectedCat; }
         }
 
         if(val<=0){ showToast('Valor inválido','error'); return; }
@@ -892,39 +913,40 @@
         e.target.reset(); setInputsDate();
     }
 
-    function deleteTransaction(id, type) {
-        pendingDeleteId = id;
-        pendingDeleteType = type;
-        document.getElementById('configMenu').style.display = 'none';
-        document.getElementById('themeMenu').style.display = 'none';
-        document.getElementById('notifMenu').style.display = 'none';
-        document.getElementById('achievementsMenu').style.display = 'none';
-        document.getElementById('backupActionMenu').style.display = 'none';
-        document.getElementById('statisticsMenu').style.display = 'none';
+    // Fecha os modais e limpa a classe de trava do scroll do body
+    function hideAllCentralModals() {
+        document.getElementById('deleteConfirmMenu').style.display = 'none';
         document.getElementById('resetConfirmMenu').style.display = 'none';
+        document.getElementById('statisticsMenu').style.display = 'none';
+        document.getElementById('backupActionMenu').style.display = 'none';
+        document.getElementById('achievementsMenu').style.display = 'none';
+        document.getElementById('themeDropdownMenu').style.display = 'none';
+        document.body.classList.remove('modal-open'); // Libera o fundo
+    }
+
+    function deleteTransaction(id, type) {
+        pendingDeleteId = id; pendingDeleteType = type;
+        document.getElementById('configMenu').style.display = 'none';
+        document.getElementById('notifMenu').style.display = 'none';
+        hideAllCentralModals();
         document.getElementById('deleteConfirmMenu').style.display = 'block';
+        document.body.classList.add('modal-open'); // Ativa trava de rolagem
     }
 
     function confirmCustomDelete() {
         if (pendingDeleteId && pendingDeleteType) {
             financeData[currentMonth][pendingDeleteType + 's'] = financeData[currentMonth][pendingDeleteType + 's'].filter(i => i.id !== pendingDeleteId);
-            saveData(); 
-            updateUI(); 
-            updateChart(); 
-            showToast('Removido com sucesso', 'info');
+            saveData(); updateUI(); updateChart(); showToast('Removido com sucesso', 'info');
         }
-        document.getElementById('deleteConfirmMenu').style.display = 'none';
-        pendingDeleteId = null;
-        pendingDeleteType = null;
+        hideAllCentralModals();
+        pendingDeleteId = null; pendingDeleteType = null;
     }
 
-    // Fluxo Customizado e Estilizado do Reset de Dados em 2 Etapas
     function launchCustomResetWorkflow() {
         customResetWorkflowStep = 1;
         document.getElementById('configMenu').style.display = 'none';
-        document.getElementById('deleteConfirmMenu').style.display = 'none';
+        hideAllCentralModals();
         
-        // Configura o texto da primeira etapa do reset
         document.getElementById('resetHeaderTitle').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Redefinir Dados?';
         document.getElementById('resetBodyText').innerText = 'Isso apagará permanentemente todas as suas receitas e despesas registradas. Deseja continuar?';
         document.getElementById('resetActionButtonsArea').innerHTML = `
@@ -932,11 +954,11 @@
             <button onclick="closeCustomResetPanel()" style="background: var(--border); color: var(--text-main); text-align:center; border-radius:8px; padding: 0.4rem; width:100%;">Cancelar</button>
         `;
         document.getElementById('resetConfirmMenu').style.display = 'block';
+        document.body.classList.add('modal-open'); // Ativa trava de rolagem
     }
 
     function handleResetWorkflowStep() {
         if(customResetWorkflowStep === 1) {
-            // Avança para a Etapa 2 de Segurança Máxima
             customResetWorkflowStep = 2;
             document.getElementById('resetHeaderTitle').innerHTML = '<i class="fas fa-skull-crossbones"></i> Certeza Absoluta?';
             document.getElementById('resetBodyText').innerText = 'Tem certeza absoluta? Todos os dados locais do ano de 2026 sumirão para sempre.';
@@ -948,26 +970,23 @@
     }
 
     function executeApplicationFinalReset() {
-        // Limpeza real e segura do banco local
         localStorage.clear();
         financeData = Array.from({ length: 12 }, () => ({ receitas: [], despesas: [] }));
         notificationLog = []; dismissedAlertsMonths = []; readNotificationsIds = []; metaGastos = 0;
         document.getElementById('metaGastosInput').value = '';
-        document.getElementById('resetConfirmMenu').style.display = 'none';
-        saveData(); initUI();
-        showToast("Aplicativo redefinido com sucesso!", "info");
+        hideAllCentralModals();
+        saveData(); initUI(); showToast("Aplicativo redefinido com sucesso!", "info");
     }
 
     function closeCustomResetPanel() {
-        document.getElementById('resetConfirmMenu').style.display = 'none';
+        hideAllCentralModals();
         customResetWorkflowStep = 1;
     }
 
     function togglePayment(id){ let item=financeData[currentMonth].despesas.find(d=>d.id===id); if(item){ item.pago=!item.pago; saveData(); updateUI(); updateChart(); showToast(item.pago?'Paga!':'Pendente','info'); } }
 
     function switchNotifTab(e, tabType) {
-        e.stopPropagation();
-        activeNotifSubTab = tabType;
+        e.stopPropagation(); activeNotifSubTab = tabType;
         document.getElementById('notifTabPend').style.background = tabType === 'pendentes' ? 'var(--bg-card)' : 'transparent';
         document.getElementById('notifTabLog').style.background = tabType === 'historico' ? 'var(--bg-card)' : 'transparent';
         document.getElementById('clearNotifBtn').innerText = tabType === 'pendentes' ? 'Limpar Não Lidas' : 'Limpar Lidas';
@@ -978,13 +997,10 @@
         if (!readNotificationsIds.includes(idStr)) {
             readNotificationsIds.push(idStr);
             localStorage.setItem('readNotificationsIds_2026', JSON.stringify(readNotificationsIds));
-            
             let timestamp = new Date().toLocaleString('pt-BR', { hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit' });
             notificationLog.unshift({ title, body, time: timestamp });
             localStorage.setItem('notificationLog_2026', JSON.stringify(notificationLog));
-            
-            showToast("Movida para notifications lidas", "success");
-            updateUI();
+            showToast("Movida para notificações lidas", "success"); updateUI();
         }
     }
 
@@ -994,15 +1010,11 @@
             if(!dismissedAlertsMonths.includes(currentMonth)) {
                 dismissedAlertsMonths.push(currentMonth);
                 localStorage.setItem('dismissedAlertsMonths_2026', JSON.stringify(dismissedAlertsMonths));
-                updateUI();
-                showToast("Avisos não lidos limpos!", "info");
+                updateUI(); showToast("Avisos não lidos limpos!", "info");
             }
         } else {
-            // Histórico de lidas limpo diretamente de forma segura
-            notificationLog = [];
-            localStorage.setItem('notificationLog_2026', JSON.stringify(notificationLog));
-            renderNotifications();
-            showToast("Histórico limpo", "info");
+            notificationLog = []; localStorage.setItem('notificationLog_2026', JSON.stringify(notificationLog));
+            renderNotifications(); showToast("Histórico limpo", "info");
         }
     }
 
@@ -1025,25 +1037,15 @@
         let netWorth = annualRec - annualExp;
 
         let html = `
-            <div class="stat-menu-row">
-                <span>Total Recebido:</span>
-                <strong style="color: var(--success);">${valuesHidden ? 'R$ ••••' : 'R$ ' + annualRec.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong>
-            </div>
-            <div class="stat-menu-row">
-                <span>Total Gasto:</span>
-                <strong style="color: var(--danger);">${valuesHidden ? 'R$ ••••' : 'R$ ' + annualExp.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong>
-            </div>
-            <div class="stat-menu-row" style="border-top: 1px solid var(--border); margin-top: 4px; padding-top: 8px;">
-                <span>Acumulado Líquido:</span>
-                <strong style="color: ${netWorth < 0 ? 'var(--danger)' : 'var(--success)'};">${valuesHidden ? 'R$ ••••' : 'R$ ' + netWorth.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong>
-            </div>
+            <div class="stat-menu-row"><span>Total Recebido:</span><strong style="color: var(--success);">${valuesHidden ? 'R$ ••••' : 'R$ ' + annualRec.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong></div>
+            <div class="stat-menu-row"><span>Total Gasto:</span><strong style="color: var(--danger);">${valuesHidden ? 'R$ ••••' : 'R$ ' + annualExp.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong></div>
+            <div class="stat-menu-row" style="border-top: 1px solid var(--border); margin-top: 4px; padding-top: 8px;"><span>Acumulado Líquido:</span><strong style="color: ${netWorth < 0 ? 'var(--danger)' : 'var(--success)'};">${valuesHidden ? 'R$ ••••' : 'R$ ' + netWorth.toLocaleString('pt-BR', {minimumFractionDigits:2})}</strong></div>
         `;
         document.getElementById('statisticsListArea').innerHTML = html;
     }
 
     function checkAndRenderAchievements() {
-        let hasTransactions = false;
-        let annualRecSum = 0;
+        let hasTransactions = false; let annualRecSum = 0;
         financeData.forEach(m => {
             if(m.receitas.length > 0 || m.despesas.length > 0) hasTransactions = true;
             annualRecSum += m.receitas.reduce((s,i) => s + i.val, 0);
@@ -1063,16 +1065,8 @@
 
         let html = '';
         items.forEach(item => {
-            let opacity = item.checked ? '1' : '0.35';
-            let iconShow = item.checked ? item.icon : '🔒';
-            html += `
-                <div class="achievement-row" style="opacity: ${opacity};">
-                    <div class="achievement-icon-slot">${iconShow}</div>
-                    <div class="achievement-info">
-                        <strong>${item.title}</strong>
-                        <span>${item.desc}</span>
-                    </div>
-                </div>`;
+            let opacity = item.checked ? '1' : '0.35'; let iconShow = item.checked ? item.icon : '🔒';
+            html += `<div class="achievement-row" style="opacity: ${opacity};"><div class="achievement-icon-slot">${iconShow}</div><div class="achievement-info"><strong>${item.title}</strong><span>${item.desc}</span></div></div>`;
         });
         document.getElementById('achievementsListArea').innerHTML = html;
     }
@@ -1093,84 +1087,47 @@
         document.getElementById('listaReceitas').innerHTML=recHtml||'<div style="padding:1.5rem;text-align:center;color:var(--text-soft);">Nenhuma receita</div>';
         
         let searchDesp=document.getElementById('searchDespesas').value.toLowerCase();
-        let despHtml=''; let today=new Date(); let refDate=new Date(2026,today.getMonth(),today.getDate());
-        let unreadCount=0;
-        let isSilenciado = dismissedAlertsMonths.includes(currentMonth);
-
+        let despHtml=''; let today=new Date(); let refDate=new Date(2026,today.getMonth(),today.getDate()); let unreadCount=0; let isSilenciado = dismissedAlertsMonths.includes(currentMonth);
         [...monthData.despesas].sort((a,b)=>a.date.localeCompare(b.date)).forEach(d=>{
             let passFilter=currentFilter==='all'||(currentFilter==='paid'&&d.pago)||(currentFilter==='pending'&&!d.pago);
             if(!d.desc.toLowerCase().includes(searchDesp)||!passFilter) return;
-            
-            let idNotif = d.id + '_notice';
-            let isUnread = !d.pago && !readNotificationsIds.includes(idNotif);
-            
+            let idNotif = d.id + '_notice'; let isUnread = !d.pago && !readNotificationsIds.includes(idNotif);
             let badge='';
             if(!d.pago&&d.date){ 
-                let parts=d.date.split('-'); 
-                let dueDate=new Date(parts[0],parts[1]-1,parts[2]); 
-                let diff=Math.ceil((dueDate-refDate)/(1000*3600*24)); 
-                if(diff>=0&&diff<=2) {
-                    if(isUnread && !isSilenciado) unreadCount++;
-                    badge='<span class="badge-clean" style="background:var(--warning-light);">Vence em breve</span>'; 
-                } else if(diff<0&&dueDate.getMonth()===currentMonth) {
-                    if(isUnread && !isSilenciado) unreadCount++;
-                    badge='<span class="badge-clean" style="background:var(--danger-light);">Atrasada</span>'; 
-                }
+                let parts=d.date.split('-'); let dueDate=new Date(parts[0],parts[1]-1,parts[2]); let diff=Math.ceil((dueDate-refDate)/(1000*3600*24)); 
+                if(diff>=0&&diff<=2) { if(isUnread && !isSilenciado) unreadCount++; badge='<span class="badge-clean" style="background:var(--warning-light);">Vence em breve</span>'; } 
+                else if(diff<0&&dueDate.getMonth()===currentMonth) { if(isUnread && !isSilenciado) unreadCount++; badge='<span class="badge-clean" style="background:var(--danger-light);">Atrasada</span>'; }
             }
             despHtml+=`<div class="transaction-item" style="${d.pago?'opacity:0.6;':''}"><div class="transaction-left"><input type="checkbox" ${d.pago?'checked':''} style="margin-right:6px;" onclick="togglePayment('${d.id}')"><div><span style="${d.pago?'text-decoration:line-through;':''}">${escapeHtml(d.desc)}</span><div style="font-size:0.7rem;">${d.date.split('-').reverse().join('/')} ${d.categoria?` • ${d.categoria}`:''}</div></div>${badge}</div><div style="font-weight:700; color:var(--danger);">${valuesHidden?'●●●●●':formatCurrency(d.val)}<button class="delete-btn" style="margin-left:10px;" onclick="deleteTransaction('${d.id}','despesa')"><i class="fas fa-trash"></i></button></div></div>`;
         });
         document.getElementById('listaDespesas').innerHTML=despHtml||'<div style="padding:1.5rem;text-align:center;color:var(--text-soft);">Nenhuma despesa</div>';
         
         let badgeElement=document.getElementById('notifBadge'); 
-        if(unreadCount>0 && !isSilenciado){ badgeElement.style.display='flex'; badgeElement.innerText=unreadCount>9?'9+':unreadCount; } 
-        else badgeElement.style.display='none';
+        if(unreadCount>0 && !isSilenciado){ badgeElement.style.display='flex'; badgeElement.innerText=unreadCount>9?'9+':unreadCount; } else badgeElement.style.display='none';
         if(document.getElementById('notifMenu').style.display==='block') renderNotifications();
     }
 
     function renderNotifications(){ 
-        let notifContentEl = document.getElementById('notifContent');
-        notifContentEl.innerHTML = '';
-        let html='';
-
+        let notifContentEl = document.getElementById('notifContent'); notifContentEl.innerHTML = ''; let html='';
         if(activeNotifSubTab === 'pendentes') {
-            if(dismissedAlertsMonths.includes(currentMonth)) {
-                notifContentEl.innerHTML = '<div style="padding:1rem; text-align:center; color:var(--text-soft); font-size:0.75rem;"><i class="fas fa-bell-slash"></i> Avisos limpos neste mês.</div>';
-                return;
-            }
-            let monthData=financeData[currentMonth];
-            let today=new Date(); let refDate=new Date(2026,today.getMonth(),today.getDate());
-
+            if(dismissedAlertsMonths.includes(currentMonth)) { notifContentEl.innerHTML = '<div style="padding:1rem; text-align:center; color:var(--text-soft); font-size:0.75rem;"><i class="fas fa-bell-slash"></i> Avisos limpos neste mês.</div>'; return; }
+            let monthData=financeData[currentMonth]; let today=new Date(); let refDate=new Date(2026,today.getMonth(),today.getDate());
             monthData.despesas.forEach(d => {
                 let idNotif = d.id + '_notice';
                 if(!d.pago && !readNotificationsIds.includes(idNotif) && d.date) {
-                    let parts=d.date.split('-'); 
-                    let dueDate=new Date(parts[0],parts[1]-1,parts[2]); 
-                    let diff=Math.ceil((dueDate-refDate)/(1000*3600*24)); 
-
+                    let parts=d.date.split('-'); let dueDate=new Date(parts[0],parts[1]-1,parts[2]); let diff=Math.ceil((dueDate-refDate)/(1000*3600*24)); 
                     if(diff <= 2 && dueDate.getMonth() === currentMonth) {
                         let label = diff === 0 ? "Vence hoje" : diff < 0 ? "Atrasada" : `Vence em ${diff}d`;
-                        html += `
-                            <div class="notif-item notif-unread-clickable" onclick="markAsRead('${idNotif}', 'Aviso de Conta', '${d.desc} (${label})')">
-                                <span><strong>${escapeHtml(d.desc)}</strong><br><span style="font-size:0.65rem; color:var(--warning);">${label}</span></span>
-                                <span style="color:var(--danger); font-weight:600;">${formatCurrency(d.val)}</span>
-                            </div>`;
+                        html += `<div class="notif-item notif-unread-clickable" onclick="markAsRead('${idNotif}', 'Aviso de Conta', '${d.desc} (${label})')"><span><strong>${escapeHtml(d.desc)}</strong><br><span style="font-size:0.65rem; color:var(--warning);">${label}</span></span><span style="color:var(--danger); font-weight:600;">${formatCurrency(d.val)}</span></div>`;
                     }
                 }
             });
             notifContentEl.innerHTML = html || '<div style="padding:1rem; text-align:center; color:var(--text-soft); font-size:0.75rem;">📩 Nenhuma notificação não lida!</div>';
         } else {
-            if(notificationLog.length === 0) {
-                notifContentEl.innerHTML = '<div style="padding:1rem; text-align:center; color:var(--text-soft); font-size:0.75rem;">Nenhum histórico de leitura.</div>';
-            } else {
+            if(notificationLog.length === 0) { notifContentEl.innerHTML = '<div style="padding:1rem; text-align:center; color:var(--text-soft); font-size:0.75rem;">Nenhum histórico de leitura.</div>'; } 
+            else {
                 notificationLog.forEach(log => {
-                    html += `
-                        <div class="notif-item" style="flex-direction:column; align-items:flex-start; gap:2px;">
-                            <div style="display:flex; justify-content:space-between; width:100%; font-weight:600;">
-                                <span>${escapeHtml(log.title)}</span>
-                                <span style="font-size:0.6rem; color:var(--text-soft);">${log.time}</span>
-                            </div>
-                            <span style="font-size:0.7rem; opacity:0.85;">${escapeHtml(log.body)}</span>
-                        </div>`;
+                    html += `<div class="notif-item" style="flex-direction:column; align-items:flex-start; gap:2px;"><div style="display:flex; justify-content:space-between; width:100%; font-weight:600;"><span>${escapeHtml(log.title)}</span><span style="font-size:0.6rem; color:var(--text-soft);">${log.time}</span></div><span style="font-size:0.7rem; opacity:0.85;">${escapeHtml(log.body)}</span></div>`;
                 });
                 notifContentEl.innerHTML = html;
             }
@@ -1182,7 +1139,7 @@
     function toggleVisibility(){ valuesHidden=!valuesHidden; localStorage.setItem('valuesHidden',valuesHidden); updateVisibilityButton(); updateUI(); updateChart(); }
     function updateVisibilityButton(){ let btn=document.getElementById('visibilityBtn'); btn.innerHTML=valuesHidden?'<i class="fas fa-eye"></i>':'<i class="fas fa-eye-slash"></i>'; }
     function applyAppTheme(){ let real=selectedThemeSetting==='system'?window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light':selectedThemeSetting; document.documentElement.setAttribute('data-theme',real); if(chartInstance) updateChart(); }
-    function setAppTheme(t){ selectedThemeSetting=t; localStorage.setItem('themeSetting',t); applyAppTheme(); showToast(`Tema ${t}`,'info'); }
+    function setAppTheme(t){ selectedThemeSetting=t; localStorage.setItem('themeSetting',t); applyAppTheme(); hideAllCentralModals(); showToast(`Tema ${t}`,'info'); }
     function exportBackup(){ let data={appId:'FINANCAS_PRO_2026',financeData,metaGastos,themeSetting:selectedThemeSetting,notificationLog,readNotificationsIds}; let a=document.createElement('a'); a.href='data:text/json,'+encodeURIComponent(JSON.stringify(data)); a.download=`financas_backup_${new Date().toISOString().slice(0,10)}.json`; a.click(); showToast('Backup exportado'); }
     function importBackup(e){ let file=e.target.files[0]; if(!file)return; let fr=new FileReader(); fr.onload=ev=>{ let d=JSON.parse(ev.target.result); if(d.appId==='FINANCAS_PRO_2026'){ financeData=d.financeData; metaGastos=d.metaGastos||0; selectedThemeSetting=d.themeSetting||'system'; notificationLog=d.notificationLog||[]; readNotificationsIds=d.readNotificationsIds||[]; localStorage.setItem('financeData_2026',JSON.stringify(financeData)); localStorage.setItem('metaGastos_2026',metaGastos); localStorage.setItem('themeSetting',selectedThemeSetting); localStorage.setItem('notificationLog_2026',JSON.stringify(notificationLog)); localStorage.setItem('readNotificationsIds_2026',JSON.stringify(readNotificationsIds)); applyAppTheme(); updateUI(); updateChart(); showToast('Restaurado!'); } else showToast('Arquivo inválido','error'); }; fr.readAsText(file); }
     function changeMeta(){ let v=parseFloat(document.getElementById('metaGastosInput').value); metaGastos=isNaN(v)?0:v; localStorage.setItem('metaGastos_2026',metaGastos); updateUI(); }
@@ -1194,54 +1151,54 @@
     
     document.getElementById('despCat')?.addEventListener('change', (e) => {
         let inputRow = document.getElementById('customCatInputRow');
-        if(e.target.value === '📦 Outros') {
-            inputRow.style.display = 'block';
-            document.getElementById('despCustomCat').focus();
-        } else {
-            inputRow.style.display = 'none';
-            document.getElementById('despCustomCat').value = '';
-        }
+        if(e.target.value === '📦 Outros') { inputRow.style.display = 'block'; document.getElementById('despCustomCat').focus(); } 
+        else { inputRow.style.display = 'none'; document.getElementById('despCustomCat').value = ''; }
     });
 
-    document.getElementById('themeBtn')?.addEventListener('click',(e)=>{ e.stopPropagation(); let m=document.getElementById('themeMenu'); m.style.display=m.style.display==='none'?'block':'none'; document.getElementById('configMenu').style.display='none'; document.getElementById('notifMenu').style.display='none'; document.getElementById('achievementsMenu').style.display='none'; document.getElementById('backupActionMenu').style.display='none'; document.getElementById('statisticsMenu').style.display='none'; document.getElementById('deleteConfirmMenu').style.display='none'; document.getElementById('resetConfirmMenu').style.display='none'; }); 
-    document.getElementById('configBtn')?.addEventListener('click',(e)=>{ e.stopPropagation(); let m=document.getElementById('configMenu'); m.style.display=m.style.display==='none'?'block':'none'; document.getElementById('themeMenu').style.display='none'; document.getElementById('notifMenu').style.display='none'; document.getElementById('achievementsMenu').style.display='none'; document.getElementById('backupActionMenu').style.display='none'; document.getElementById('statisticsMenu').style.display='none'; document.getElementById('deleteConfirmMenu').style.display='none'; document.getElementById('resetConfirmMenu').style.display='none'; }); 
-    document.getElementById('notificationBtn')?.addEventListener('click',(e)=>{ e.stopPropagation(); let m=document.getElementById('notifMenu'); renderNotifications(); m.style.display=m.style.display==='none'?'block':'none'; document.getElementById('themeMenu').style.display='none'; document.getElementById('configMenu').style.display='none'; document.getElementById('achievementsMenu').style.display='none'; document.getElementById('backupActionMenu').style.display='none'; document.getElementById('statisticsMenu').style.display='none'; document.getElementById('deleteConfirmMenu').style.display='none'; document.getElementById('resetConfirmMenu').style.display='none'; });
+    document.getElementById('configBtn')?.addEventListener('click',(e)=>{ e.stopPropagation(); let m=document.getElementById('configMenu'); m.style.display=m.style.display==='none'?'block':'none'; document.getElementById('notifMenu').style.display='none'; hideAllCentralModals(); }); 
+    document.getElementById('notificationBtn')?.addEventListener('click',(e)=>{ e.stopPropagation(); let m=document.getElementById('notifMenu'); renderNotifications(); m.style.display=m.style.display==='none'?'block':'none'; document.getElementById('configMenu').style.display='none'; hideAllCentralModals(); });
     
     document.getElementById('achievementsTriggerBtn')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        document.getElementById('configMenu').style.display = 'none';
-        checkAndRenderAchievements();
+        e.stopPropagation(); document.getElementById('configMenu').style.display = 'none';
+        checkAndRenderAchievements(); hideAllCentralModals();
         document.getElementById('achievementsMenu').style.display = 'block';
+        document.body.classList.add('modal-open'); // Ativa trava de rolagem
     });
 
     document.getElementById('backupTriggerBtn')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        document.getElementById('configMenu').style.display = 'none';
-        document.getElementById('backupActionMenu').style.display = 'block';
+        e.stopPropagation(); document.getElementById('configMenu').style.display = 'none';
+        hideAllCentralModals(); document.getElementById('backupActionMenu').style.display = 'block';
+        document.body.classList.add('modal-open'); // Ativa trava de rolagem
     });
 
     document.getElementById('statsTriggerBtn')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        document.getElementById('configMenu').style.display = 'none';
-        calculateAndRenderStatisticsMenu();
+        e.stopPropagation(); document.getElementById('configMenu').style.display = 'none';
+        calculateAndRenderStatisticsMenu(); hideAllCentralModals();
         document.getElementById('statisticsMenu').style.display = 'block';
+        document.body.classList.add('modal-open'); // Ativa trava de rolagem
     });
 
-    // Ouvinte dedicado para disparar o novo fluxo de reset customizado
+    document.getElementById('themeTriggerBtn')?.addEventListener('click', (e) => {
+        e.stopPropagation(); document.getElementById('configMenu').style.display = 'none';
+        hideAllCentralModals(); document.getElementById('themeDropdownMenu').style.display = 'block';
+        document.body.classList.add('modal-open'); // Ativa trava de rolagem
+    });
+
     document.getElementById('resetTriggerBtn')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        launchCustomResetWorkflow();
+        e.stopPropagation(); launchCustomResetWorkflow();
     });
 
     window.addEventListener('click',(e)=>{ 
-        if(!e.target.closest('#themeBtn') && !e.target.closest('#themeMenu')) document.getElementById('themeMenu').style.display='none'; 
         if(!e.target.closest('#configBtn') && !e.target.closest('#configMenu')) document.getElementById('configMenu').style.display='none'; 
         if(!e.target.closest('#notificationBtn') && !e.target.closest('#notifMenu')) document.getElementById('notifMenu').style.display='none'; 
-        if(!e.target.closest('#achievementsTriggerBtn') && !e.target.closest('#achievementsMenu')) document.getElementById('achievementsMenu').style.display='none'; 
-        if(!e.target.closest('#backupTriggerBtn') && !e.target.closest('#backupActionMenu')) document.getElementById('backupActionMenu').style.display='none'; 
-        if(!e.target.closest('#statsTriggerBtn') && !e.target.closest('#statisticsMenu')) document.getElementById('statisticsMenu').style.display='none'; 
-        if(!e.target.closest('#deleteConfirmMenu') && !e.target.closest('.delete-btn')) document.getElementById('deleteConfirmMenu').style.display='none';
-        if(!e.target.closest('#resetConfirmMenu') && !e.target.closest('#resetTriggerBtn')) closeCustomResetPanel();
+        
+        // Remoção da trava de rolagem ao fechar clicando fora das áreas dos modais centrais
+        if(!e.target.closest('#achievementsTriggerBtn') && !e.target.closest('#achievementsMenu')) { if(document.getElementById('achievementsMenu').style.display==='block') document.body.classList.remove('modal-open'); document.getElementById('achievementsMenu').style.display='none'; }
+        if(!e.target.closest('#backupTriggerBtn') && !e.target.closest('#backupActionMenu')) { if(document.getElementById('backupActionMenu').style.display==='block') document.body.classList.remove('modal-open'); document.getElementById('backupActionMenu').style.display='none'; }
+        if(!e.target.closest('#statsTriggerBtn') && !e.target.closest('#statisticsMenu')) { if(document.getElementById('statisticsMenu').style.display==='block') document.body.classList.remove('modal-open'); document.getElementById('statisticsMenu').style.display='none'; }
+        if(!e.target.closest('#themeTriggerBtn') && !e.target.closest('#themeDropdownMenu')) { if(document.getElementById('themeDropdownMenu').style.display==='block') document.body.classList.remove('modal-open'); document.getElementById('themeDropdownMenu').style.display='none'; }
+        if(!e.target.closest('#deleteConfirmMenu') && !e.target.closest('.delete-btn')) { if(document.getElementById('deleteConfirmMenu').style.display==='block') document.body.classList.remove('modal-open'); document.getElementById('deleteConfirmMenu').style.display='none'; }
+        if(!e.target.closest('#resetConfirmMenu') && !e.target.closest('#resetTriggerBtn')) { if(document.getElementById('resetConfirmMenu').style.display==='block') document.body.classList.remove('modal-open'); closeCustomResetPanel(); }
     });
     initUI();
 </script>
