@@ -74,7 +74,6 @@
             transition: background 0.2s, color 0.2s;
         }
 
-        /* 🔒 Classe Utilitária de Alto Nível para Travar o Scroll de Fundo */
         body.modal-open {
             overflow: hidden !important;
             touch-action: none !important;
@@ -241,6 +240,7 @@
             width: 300px;
         }
 
+        /* Modais centrais unificados */
         #deleteConfirmMenu, #resetConfirmMenu, #achievementsMenu, #statisticsMenu, #backupActionMenu, #themeDropdownMenu {
             position: fixed;
             top: 50%;
@@ -686,6 +686,20 @@
             color: var(--primary);
         }
 
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            padding: 4px 8px;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .delete-btn:hover {
+            transform: scale(1.15);
+        }
+
         .toast-modern {
             position: fixed;
             bottom: 20px;
@@ -741,8 +755,8 @@
                     <div class="dropdown-header" style="color: var(--danger); font-weight:700;"><i class="fas fa-trash-alt"></i> Excluir Registro?</div>
                     <div style="padding: 0.5rem; font-size: 0.8rem; opacity: 0.85; text-align: center; margin-bottom: 0.5rem; color: var(--text-main);">Tem certeza que deseja apagar permanentemente este item?</div>
                     <div style="display:flex; gap: 6px;">
-                        <button onclick="confirmCustomDelete()" style="background: var(--danger); color: white; text-align:center; border-radius:8px; padding: 0.4rem; width:100%;">Sim, Excluir</button>
-                        <button onclick="document.getElementById('deleteConfirmMenu').style.display='none'; document.body.classList.remove('modal-open');" style="background: var(--border); color: var(--text-main); text-align:center; border-radius:8px; padding: 0.4rem; width:100%;">Cancelar</button>
+                        <button onclick="confirmCustomDelete()" style="background: var(--danger); color: white; text-align:center; border-radius:8px; padding: 0.4rem; width:100%; border:none; font-weight:700; cursor:pointer;">Sim, Excluir</button>
+                        <button onclick="hideAllCentralModals()" style="background: var(--border); color: var(--text-main); text-align:center; border-radius:8px; padding: 0.4rem; width:100%; border:none; cursor:pointer;">Cancelar</button>
                     </div>
                 </div>
 
@@ -855,13 +869,11 @@
     let currentChartType = 'bar';
     let metaGastos = parseFloat(localStorage.getItem('metaGastos_2026')) || 0;
     let currentFilter = 'all';
-    let notifiedItems = [];
     let selectedThemeSetting = localStorage.getItem('themeSetting') || 'system';
     let activeNotifSubTab = 'pendentes';
     
     let pendingDeleteId = null;
     let pendingDeleteType = null;
-    
     let customResetWorkflowStep = 1;
 
     function initUI(){
@@ -913,7 +925,6 @@
         e.target.reset(); setInputsDate();
     }
 
-    // Fecha os modais e limpa a classe de trava do scroll do body
     function hideAllCentralModals() {
         document.getElementById('deleteConfirmMenu').style.display = 'none';
         document.getElementById('resetConfirmMenu').style.display = 'none';
@@ -921,16 +932,18 @@
         document.getElementById('backupActionMenu').style.display = 'none';
         document.getElementById('achievementsMenu').style.display = 'none';
         document.getElementById('themeDropdownMenu').style.display = 'none';
-        document.body.classList.remove('modal-open'); // Libera o fundo
+        document.body.classList.remove('modal-open');
     }
 
+    // Chamada segura da lixeira corrigida usando aspas corretas na injeção do HTML
     function deleteTransaction(id, type) {
-        pendingDeleteId = id; pendingDeleteType = type;
+        pendingDeleteId = id; 
+        pendingDeleteType = type;
         document.getElementById('configMenu').style.display = 'none';
         document.getElementById('notifMenu').style.display = 'none';
         hideAllCentralModals();
         document.getElementById('deleteConfirmMenu').style.display = 'block';
-        document.body.classList.add('modal-open'); // Ativa trava de rolagem
+        document.body.classList.add('modal-open');
     }
 
     function confirmCustomDelete() {
@@ -950,11 +963,11 @@
         document.getElementById('resetHeaderTitle').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Redefinir Dados?';
         document.getElementById('resetBodyText').innerText = 'Isso apagará permanentemente todas as suas receitas e despesas registradas. Deseja continuar?';
         document.getElementById('resetActionButtonsArea').innerHTML = `
-            <button onclick="handleResetWorkflowStep()" style="background: var(--danger); color: white; text-align:center; border-radius:8px; padding: 0.4rem; width:100%;">Sim, Resetar</button>
-            <button onclick="closeCustomResetPanel()" style="background: var(--border); color: var(--text-main); text-align:center; border-radius:8px; padding: 0.4rem; width:100%;">Cancelar</button>
+            <button onclick="handleResetWorkflowStep()" style="background: var(--danger); color: white; text-align:center; border-radius:8px; padding: 0.4rem; width:100%; border:none; font-weight:700; cursor:pointer;">Sim, Resetar</button>
+            <button onclick="closeCustomResetPanel()" style="background: var(--border); color: var(--text-main); text-align:center; border-radius:8px; padding: 0.4rem; width:100%; border:none; cursor:pointer;">Cancelar</button>
         `;
         document.getElementById('resetConfirmMenu').style.display = 'block';
-        document.body.classList.add('modal-open'); // Ativa trava de rolagem
+        document.body.classList.add('modal-open');
     }
 
     function handleResetWorkflowStep() {
@@ -963,8 +976,8 @@
             document.getElementById('resetHeaderTitle').innerHTML = '<i class="fas fa-skull-crossbones"></i> Certeza Absoluta?';
             document.getElementById('resetBodyText').innerText = 'Tem certeza absoluta? Todos os dados locais do ano de 2026 sumirão para sempre.';
             document.getElementById('resetActionButtonsArea').innerHTML = `
-                <button onclick="executeApplicationFinalReset()" style="background: #7f1d1d; color: white; text-align:center; border-radius:8px; padding: 0.4rem; width:100%;">Sim, Apagar Tudo</button>
-                <button onclick="closeCustomResetPanel()" style="background: var(--border); color: var(--text-main); text-align:center; border-radius:8px; padding: 0.4rem; width:100%;">Cancelar</button>
+                <button onclick="executeApplicationFinalReset()" style="background: #7f1d1d; color: white; text-align:center; border-radius:8px; padding: 0.4rem; width:100%; border:none; font-weight:700; cursor:pointer;">Sim, Apagar Tudo</button>
+                <button onclick="closeCustomResetPanel()" style="background: var(--border); color: var(--text-main); text-align:center; border-radius:8px; padding: 0.4rem; width:100%; border:none; cursor:pointer;">Cancelar</button>
             `;
         }
     }
@@ -974,8 +987,7 @@
         financeData = Array.from({ length: 12 }, () => ({ receitas: [], despesas: [] }));
         notificationLog = []; dismissedAlertsMonths = []; readNotificationsIds = []; metaGastos = 0;
         document.getElementById('metaGastosInput').value = '';
-        hideAllCentralModals();
-        saveData(); initUI(); showToast("Aplicativo redefinido com sucesso!", "info");
+        hideAllCentralModals(); saveData(); initUI(); showToast("Aplicativo redefinido com sucesso!", "info");
     }
 
     function closeCustomResetPanel() {
@@ -1083,7 +1095,13 @@
         document.getElementById('despesasChange').innerHTML=((totalDesp-prevDesp)/(prevDesp||1)*100).toFixed(1)+'% vs mês anterior';
         
         let searchRec=document.getElementById('searchReceitas').value.toLowerCase();
-        let recHtml=''; [...monthData.receitas].sort((a,b)=>a.date.localeCompare(b.date)).forEach(r=>{ if(r.desc.toLowerCase().includes(searchRec)) recHtml+=`<div class="transaction-item"><div class="transaction-left"><div><strong>${escapeHtml(r.desc)}</strong><div style="font-size:0.7rem;">${r.date.split('-').reverse().join('/')}</div></div>${r.isFixa?'<span class="badge-clean">Fixa</span>':''}</div><div style="font-weight:700; color:var(--success);">${valuesHidden?'●●●●●':formatCurrency(r.val)}<button class="delete-btn" style="margin-left:10px;" onclick="deleteTransaction('${r.id}','receita')"><i class="fas fa-trash"></i></button></div></div>`; });
+        let recHtml=''; 
+        [...monthData.receitas].sort((a,b)=>a.date.localeCompare(b.date)).forEach(r=>{ 
+            if(r.desc.toLowerCase().includes(searchRec)) {
+                // Correção direta das aspas simples fixadas nas chamadas dinâmicas
+                recHtml+=`<div class="transaction-item"><div class="transaction-left"><div><strong>${escapeHtml(r.desc)}</strong><div style="font-size:0.7rem;">${r.date.split('-').reverse().join('/')}</div></div>${r.isFixa?'<span class="badge-clean">Fixa</span>':''}</div><div style="font-weight:700; color:var(--success);">${valuesHidden?'●●●●●':formatCurrency(r.val)}<button class="delete-btn" style="margin-left:10px;" onclick="deleteTransaction('${r.id}','receita')"><i class="fas fa-trash"></i></button></div></div>`; 
+            }
+        });
         document.getElementById('listaReceitas').innerHTML=recHtml||'<div style="padding:1.5rem;text-align:center;color:var(--text-soft);">Nenhuma receita</div>';
         
         let searchDesp=document.getElementById('searchDespesas').value.toLowerCase();
@@ -1098,6 +1116,7 @@
                 if(diff>=0&&diff<=2) { if(isUnread && !isSilenciado) unreadCount++; badge='<span class="badge-clean" style="background:var(--warning-light);">Vence em breve</span>'; } 
                 else if(diff<0&&dueDate.getMonth()===currentMonth) { if(isUnread && !isSilenciado) unreadCount++; badge='<span class="badge-clean" style="background:var(--danger-light);">Atrasada</span>'; }
             }
+            // Correção direta das aspas simples fixadas nas chamadas dinâmicas da despesa
             despHtml+=`<div class="transaction-item" style="${d.pago?'opacity:0.6;':''}"><div class="transaction-left"><input type="checkbox" ${d.pago?'checked':''} style="margin-right:6px;" onclick="togglePayment('${d.id}')"><div><span style="${d.pago?'text-decoration:line-through;':''}">${escapeHtml(d.desc)}</span><div style="font-size:0.7rem;">${d.date.split('-').reverse().join('/')} ${d.categoria?` • ${d.categoria}`:''}</div></div>${badge}</div><div style="font-weight:700; color:var(--danger);">${valuesHidden?'●●●●●':formatCurrency(d.val)}<button class="delete-btn" style="margin-left:10px;" onclick="deleteTransaction('${d.id}','despesa')"><i class="fas fa-trash"></i></button></div></div>`;
         });
         document.getElementById('listaDespesas').innerHTML=despHtml||'<div style="padding:1.5rem;text-align:center;color:var(--text-soft);">Nenhuma despesa</div>';
@@ -1162,26 +1181,26 @@
         e.stopPropagation(); document.getElementById('configMenu').style.display = 'none';
         checkAndRenderAchievements(); hideAllCentralModals();
         document.getElementById('achievementsMenu').style.display = 'block';
-        document.body.classList.add('modal-open'); // Ativa trava de rolagem
+        document.body.classList.add('modal-open');
     });
 
     document.getElementById('backupTriggerBtn')?.addEventListener('click', (e) => {
         e.stopPropagation(); document.getElementById('configMenu').style.display = 'none';
         hideAllCentralModals(); document.getElementById('backupActionMenu').style.display = 'block';
-        document.body.classList.add('modal-open'); // Ativa trava de rolagem
+        document.body.classList.add('modal-open');
     });
 
     document.getElementById('statsTriggerBtn')?.addEventListener('click', (e) => {
         e.stopPropagation(); document.getElementById('configMenu').style.display = 'none';
         calculateAndRenderStatisticsMenu(); hideAllCentralModals();
         document.getElementById('statisticsMenu').style.display = 'block';
-        document.body.classList.add('modal-open'); // Ativa trava de rolagem
+        document.body.classList.add('modal-open');
     });
 
     document.getElementById('themeTriggerBtn')?.addEventListener('click', (e) => {
         e.stopPropagation(); document.getElementById('configMenu').style.display = 'none';
         hideAllCentralModals(); document.getElementById('themeDropdownMenu').style.display = 'block';
-        document.body.classList.add('modal-open'); // Ativa trava de rolagem
+        document.body.classList.add('modal-open');
     });
 
     document.getElementById('resetTriggerBtn')?.addEventListener('click', (e) => {
@@ -1192,12 +1211,14 @@
         if(!e.target.closest('#configBtn') && !e.target.closest('#configMenu')) document.getElementById('configMenu').style.display='none'; 
         if(!e.target.closest('#notificationBtn') && !e.target.closest('#notifMenu')) document.getElementById('notifMenu').style.display='none'; 
         
-        // Remoção da trava de rolagem ao fechar clicando fora das áreas dos modais centrais
+        // Proteção contra falsos fechamentos imediatos nos cliques da lixeira (.delete-btn ou ícone interno)
+        if(e.target.closest('.delete-btn') || e.target.closest('.fas.fa-trash')) return;
+
         if(!e.target.closest('#achievementsTriggerBtn') && !e.target.closest('#achievementsMenu')) { if(document.getElementById('achievementsMenu').style.display==='block') document.body.classList.remove('modal-open'); document.getElementById('achievementsMenu').style.display='none'; }
         if(!e.target.closest('#backupTriggerBtn') && !e.target.closest('#backupActionMenu')) { if(document.getElementById('backupActionMenu').style.display==='block') document.body.classList.remove('modal-open'); document.getElementById('backupActionMenu').style.display='none'; }
         if(!e.target.closest('#statsTriggerBtn') && !e.target.closest('#statisticsMenu')) { if(document.getElementById('statisticsMenu').style.display==='block') document.body.classList.remove('modal-open'); document.getElementById('statisticsMenu').style.display='none'; }
         if(!e.target.closest('#themeTriggerBtn') && !e.target.closest('#themeDropdownMenu')) { if(document.getElementById('themeDropdownMenu').style.display==='block') document.body.classList.remove('modal-open'); document.getElementById('themeDropdownMenu').style.display='none'; }
-        if(!e.target.closest('#deleteConfirmMenu') && !e.target.closest('.delete-btn')) { if(document.getElementById('deleteConfirmMenu').style.display==='block') document.body.classList.remove('modal-open'); document.getElementById('deleteConfirmMenu').style.display='none'; }
+        if(!e.target.closest('#deleteConfirmMenu')) { if(document.getElementById('deleteConfirmMenu').style.display==='block') document.body.classList.remove('modal-open'); document.getElementById('deleteConfirmMenu').style.display='none'; }
         if(!e.target.closest('#resetConfirmMenu') && !e.target.closest('#resetTriggerBtn')) { if(document.getElementById('resetConfirmMenu').style.display==='block') document.body.classList.remove('modal-open'); closeCustomResetPanel(); }
     });
     initUI();
