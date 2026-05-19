@@ -760,11 +760,11 @@
                 </div>
 
                 <div id="resetConfirmMenu" class="dropdown-glass" style="display: none;">
-                    <div class="dropdown-header" id="resetHeaderTitle" style="color: var(--danger); font-weight:700;"><i class="fas fa-exclamation-triangle"></i> Redefinir Dados?</div>
-                    <div id="resetBodyText" style="padding: 0.5rem; font-size: 0.8rem; opacity: 0.85; text-align: center; margin-bottom: 0.5rem; color: var(--text-main); line-height: 1.4;">Isso apagará permanentemente todas as suas receitas e despesas. Deseja continuar?</div>
-                    <div style="display:flex; gap: 6px;" id="resetActionButtonsArea">
-                        <button onclick="handleResetWorkflowStep()" style="background: var(--danger); color: white; text-align:center; border-radius:8px; padding: 0.4rem; width:100%;">Sim, Resetar</button>
-                        <button onclick="closeCustomResetPanel()" style="background: var(--border); color: var(--text-main); text-align:center; border-radius:8px; padding: 0.4rem; width:100%;">Cancelar</button>
+                    <div class="dropdown-header" style="color: var(--danger); font-weight:700;"><i class="fas fa-exclamation-triangle"></i> Redefinir Dados?</div>
+                    <div style="padding: 0.5rem; font-size: 0.8rem; opacity: 0.85; text-align: center; margin-bottom: 0.5rem; color: var(--text-main);">Isso apagará permanentemente todas as suas receitas e despesas. Deseja continuar?</div>
+                    <div style="display:flex; gap: 6px;">
+                        <button onclick="handleResetWorkflowStep()" style="background: var(--danger); color: white; text-align:center; border-radius:8px; padding: 0.4rem; width:100%; border:none; font-weight:700; cursor:pointer;">Sim, Resetar</button>
+                        <button onclick="hideAllCentralModals()" style="background: var(--border); color: var(--text-main); text-align:center; border-radius:8px; padding: 0.4rem; width:100%; border:none; cursor:pointer;">Cancelar</button>
                     </div>
                 </div>
 
@@ -954,30 +954,14 @@
     }
 
     function launchCustomResetWorkflow() {
-        customResetWorkflowStep = 1;
         document.getElementById('configMenu').style.display = 'none';
         hideAllCentralModals();
-        
-        document.getElementById('resetHeaderTitle').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Redefinir Dados?';
-        document.getElementById('resetBodyText').innerText = 'Isso apagará permanentemente todas as suas receitas e despesas registradas. Deseja continuar?';
-        document.getElementById('resetActionButtonsArea').innerHTML = `
-            <button onclick="handleResetWorkflowStep()" style="background: var(--danger); color: white; text-align:center; border-radius:8px; padding: 0.4rem; width:100%; border:none; font-weight:700; cursor:pointer;">Sim, Resetar</button>
-            <button onclick="closeCustomResetPanel()" style="background: var(--border); color: var(--text-main); text-align:center; border-radius:8px; padding: 0.4rem; width:100%; border:none; cursor:pointer;">Cancelar</button>
-        `;
         document.getElementById('resetConfirmMenu').style.display = 'block';
         document.body.classList.add('modal-open');
     }
 
     function handleResetWorkflowStep() {
-        if(customResetWorkflowStep === 1) {
-            customResetWorkflowStep = 2;
-            document.getElementById('resetHeaderTitle').innerHTML = '<i class="fas fa-skull-crossbones"></i> Certeza Absoluta?';
-            document.getElementById('resetBodyText').innerText = 'Tem certeza absoluta? Todos os dados locais do ano de 2026 sumirão para sempre.';
-            document.getElementById('resetActionButtonsArea').innerHTML = `
-                <button onclick="executeApplicationFinalReset()" style="background: #7f1d1d; color: white; text-align:center; border-radius:8px; padding: 0.4rem; width:100%; border:none; font-weight:700; cursor:pointer;">Sim, Apagar Tudo</button>
-                <button onclick="closeCustomResetPanel()" style="background: var(--border); color: var(--text-main); text-align:center; border-radius:8px; padding: 0.4rem; width:100%; border:none; cursor:pointer;">Cancelar</button>
-            `;
-        }
+        executeApplicationFinalReset();
     }
 
     function executeApplicationFinalReset() {
@@ -990,7 +974,6 @@
 
     function closeCustomResetPanel() {
         hideAllCentralModals();
-        customResetWorkflowStep = 1;
     }
 
     function togglePayment(id){ let item=financeData[currentMonth].despesas.find(d=>d.id===id); if(item){ item.pago=!item.pago; saveData(); updateUI(); updateChart(); showToast(item.pago?'Paga!':'Pendente','info'); } }
@@ -1102,52 +1085,14 @@
         document.getElementById('listaReceitas').innerHTML=recHtml||'<div style="padding:1.5rem;text-align:center;color:var(--text-soft);">Nenhuma receita</div>';
         
         let searchDesp=document.getElementById('searchDespesas').value.toLowerCase();
-        let despHtml=''; let today=new Date(); let refDate=new Date(2026,today.getMonth(),today.getDate()); let unreadCount=0; let isSilenciado = dismissedAlertsMonths.includes(currentMonth);
+        let despHtml=''; 
         [...monthData.despesas].sort((a,b)=>a.date.localeCompare(b.date)).forEach(d=>{
-            let passFilter=currentFilter==='all'||(currentFilter==='paid'&&d.pago)||(currentFilter==='pending'&&!d.pago);
-            if(!d.desc.toLowerCase().includes(searchDesp)||!passFilter) return;
-            let idNotif = d.id + '_notice'; let isUnread = !d.pago && !readNotificationsIds.includes(idNotif);
-            let badge='';
-            if(!d.pago&&d.date){ 
-                let parts=d.date.split('-'); let dueDate=new Date(parts[0],parts[1]-1,parts[2]); let diff=Math.ceil((dueDate-refDate)/(1000*3600*24)); 
-                if(diff>=0&&diff<=2) { if(isUnread && !isSilenciado) unreadCount++; badge='<span class="badge-clean" style="background:var(--warning-light);">Vence em breve</span>'; } 
-                else if(diff<0&&dueDate.getMonth()===currentMonth) { if(isUnread && !isSilenciado) unreadCount++; badge='<span class="badge-clean" style="background:var(--danger-light);">Atrasada</span>'; }
-            }
-            // CORREGIDO: O identificador de exclusão dinâmico alterado para d.id de forma estável
-            despHtml+=`<div class="transaction-item" style="${d.pago?'opacity:0.6;':''}"><div class="transaction-left"><input type="checkbox" ${d.pago?'checked':''} style="margin-right:6px;" onclick="togglePayment('${d.id}')"><div><span style="${d.pago?'text-decoration:line-through;':''}">${escapeHtml(d.desc)}</span><div style="font-size:0.7rem;">${d.date.split('-').reverse().join('/')} ${d.categoria?` • ${d.categoria}`:''}</div></div>${badge}</div><div style="font-weight:700; color:var(--danger);">${valuesHidden?'●●●●●':formatCurrency(d.val)}<button class="delete-btn" style="margin-left:10px;" onclick="deleteTransaction('${d.id}','despesa')"><i class="fas fa-trash"></i></button></div></div>`;
+            if(!d.desc.toLowerCase().includes(searchDesp)) return;
+            despHtml+=`<div class="transaction-item" style="${d.pago?'opacity:0.6;':''}"><div class="transaction-left"><input type="checkbox" ${d.pago?'checked':''} style="margin-right:6px;" onclick="togglePayment('${d.id}')"><div><span style="${d.pago?'text-decoration:line-through;':''}">${escapeHtml(d.desc)}</span><div style="font-size:0.7rem;">${d.date.split('-').reverse().join('/')} ${d.categoria?` • ${d.categoria}`:''}</div></div></div><div style="font-weight:700; color:var(--danger);">${valuesHidden?'●●●●●':formatCurrency(d.val)}<button class="delete-btn" style="margin-left:10px;" onclick="deleteTransaction('${d.id}','despesa')"><i class="fas fa-trash"></i></button></div></div>`;
         });
         document.getElementById('listaDespesas').innerHTML=despHtml||'<div style="padding:1.5rem;text-align:center;color:var(--text-soft);">Nenhuma despesa</div>';
         
-        let badgeElement=document.getElementById('notifBadge'); 
-        if(unreadCount>0 && !isSilenciado){ badgeElement.style.display='flex'; badgeElement.innerText=unreadCount>9?'9+':unreadCount; } else badgeElement.style.display='none';
         if(document.getElementById('notifMenu').style.display==='block') renderNotifications();
-    }
-
-    function renderNotifications(){ 
-        let notifContentEl = document.getElementById('notifContent'); notifContentEl.innerHTML = ''; let html='';
-        if(activeNotifSubTab === 'pendentes') {
-            if(dismissedAlertsMonths.includes(currentMonth)) { notifContentEl.innerHTML = '<div style="padding:1rem; text-align:center; color:var(--text-soft); font-size:0.75rem;"><i class="fas fa-bell-slash"></i> Avisos limpos neste mês.</div>'; return; }
-            let monthData=financeData[currentMonth]; let today=new Date(); let refDate=new Date(2026,today.getMonth(),today.getDate());
-            monthData.despesas.forEach(d => {
-                let idNotif = d.id + '_notice';
-                if(!d.pago && !readNotificationsIds.includes(idNotif) && d.date) {
-                    let parts=d.date.split('-'); let dueDate=new Date(parts[0],parts[1]-1,parts[2]); let diff=Math.ceil((dueDate-refDate)/(1000*3600*24)); 
-                    if(diff <= 2 && dueDate.getMonth() === currentMonth) {
-                        let label = diff === 0 ? "Vence hoje" : diff < 0 ? "Atrasada" : `Vence em ${diff}d`;
-                        html += `<div class="notif-item notif-unread-clickable" onclick="markAsRead('${idNotif}', 'Aviso de Conta', '${d.desc} (${label})')"><span><strong>${escapeHtml(d.desc)}</strong><br><span style="font-size:0.65rem; color:var(--warning);">${label}</span></span><span style="color:var(--danger); font-weight:600;">${formatCurrency(d.val)}</span></div>`;
-                    }
-                }
-            });
-            notifContentEl.innerHTML = html || '<div style="padding:1rem; text-align:center; color:var(--text-soft); font-size:0.75rem;">📩 Nenhuma notificação não lida!</div>';
-        } else {
-            if(notificationLog.length === 0) { notifContentEl.innerHTML = '<div style="padding:1rem; text-align:center; color:var(--text-soft); font-size:0.75rem;">Nenhum histórico de leitura.</div>'; } 
-            else {
-                notificationLog.forEach(log => {
-                    html += `<div class="notif-item" style="flex-direction:column; align-items:flex-start; gap:2px;"><div style="display:flex; justify-content:space-between; width:100%; font-weight:600;"><span>${escapeHtml(log.title)}</span><span style="font-size:0.6rem; color:var(--text-soft);">${log.time}</span></div><span style="font-size:0.7rem; opacity:0.85;">${escapeHtml(log.body)}</span></div>`;
-                });
-                notifContentEl.innerHTML = html;
-            }
-        }
     }
 
     function updateChart(){ let ctx=document.getElementById('financeChart').getContext('2d'); let months=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']; let recData=financeData.map(m=>m.receitas.reduce((a,b)=>a+b.val,0)); let expData=financeData.map(m=>m.despesas.reduce((a,b)=>a+b.val,0)); if(chartInstance) chartInstance.destroy(); chartInstance=new Chart(ctx,{type:currentChartType,data:{labels:months,datasets:[{label:'Receitas',data:recData,borderColor:'#0f7b6e',backgroundColor:'rgba(15,123,110,0.2)',borderWidth:2,tension:0.3,fill:currentChartType==='line'},{label:'Despesas',data:expData,borderColor:'#b91c2c',backgroundColor:'rgba(185,28,44,0.15)',borderWidth:2,tension:0.3,fill:currentChartType==='line'}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:getComputedStyle(document.body).getPropertyValue('--text-main')}}}}}); }
@@ -1157,27 +1102,14 @@
     function applyAppTheme(){ let real=selectedThemeSetting==='system'?window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light':selectedThemeSetting; document.documentElement.setAttribute('data-theme',real); if(chartInstance) updateChart(); }
     function setAppTheme(t){ selectedThemeSetting=t; localStorage.setItem('themeSetting',t); applyAppTheme(); hideAllCentralModals(); showToast(`Tema ${t}`,'info'); }
 
-    // 🚀 ATUALIZADO: Motor de Exportação Robusto com Blob contra bloqueios mobile
     function exportBackup(){ 
         let data={appId:'FINANCAS_PRO_2026',financeData,metaGastos,themeSetting:selectedThemeSetting,notificationLog,readNotificationsIds}; 
         let jsonString = JSON.stringify(data);
         let blob = new Blob([jsonString], {type: "application/json"});
         let blobUrl = URL.createObjectURL(blob);
-        
-        let a=document.createElement('a'); 
-        a.href=blobUrl; 
-        a.download=`financas_backup_${new Date().toISOString().slice(0,10)}.json`; 
-        document.body.appendChild(a);
-        a.click(); 
-        
-        // Limpeza de memória
-        setTimeout(() => {
-            document.body.removeChild(a);
-            URL.revokeObjectURL(blobUrl);
-        }, 100);
-        
-        hideAllCentralModals();
-        showToast('Backup salvo em Downloads!'); 
+        let a=document.createElement('a'); a.href=blobUrl; a.download=`financas_backup_${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click();
+        setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(blobUrl); }, 100);
+        hideAllCentralModals(); showToast('Backup salvo em Downloads!'); 
     }
 
     function importBackup(e){ let file=e.target.files[0]; if(!file)return; let fr=new FileReader(); fr.onload=ev=>{ let d=JSON.parse(ev.target.result); if(d.appId==='FINANCAS_PRO_2026'){ financeData=d.financeData; metaGastos=d.metaGastos||0; selectedThemeSetting=d.themeSetting||'system'; notificationLog=d.notificationLog||[]; readNotificationsIds=d.readNotificationsIds||[]; localStorage.setItem('financeData_2026',JSON.stringify(financeData)); localStorage.setItem('metaGastos_2026',metaGastos); localStorage.setItem('themeSetting',selectedThemeSetting); localStorage.setItem('notificationLog_2026',JSON.stringify(notificationLog)); localStorage.setItem('readNotificationsIds_2026',JSON.stringify(readNotificationsIds)); applyAppTheme(); updateUI(); updateChart(); hideAllCentralModals(); showToast('Restaurado!'); } else showToast('Arquivo inválido','error'); }; fr.readAsText(file); }
@@ -1187,52 +1119,19 @@
     function escapeHtml(s){ let div=document.createElement('div'); div.textContent=s; return div.innerHTML; }
 
     document.getElementById('formReceita')?.addEventListener('submit',e=>addTransaction(e,'receita')); document.getElementById('formDespesa')?.addEventListener('submit',e=>addTransaction(e,'despesa')); document.getElementById('metaGastosInput')?.addEventListener('change',changeMeta); document.getElementById('visibilityBtn')?.addEventListener('click',toggleVisibility); document.getElementById('barChartBtn')?.addEventListener('click',()=>changeChartType('bar')); document.getElementById('lineChartBtn')?.addEventListener('click',()=>changeChartType('line')); document.getElementById('searchReceitas')?.addEventListener('input',()=>updateUI()); document.getElementById('searchDespesas')?.addEventListener('input',()=>updateUI()); document.querySelectorAll('.filter-chip[data-filter]').forEach(btn=>{ btn.addEventListener('click',()=>{ currentFilter=btn.getAttribute('data-filter'); document.querySelectorAll('.filter-chip[data-filter]').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); updateUI(); }); }); document.querySelectorAll('.tab-modern').forEach(btn=>btn.addEventListener('click',()=>switchTab(btn.getAttribute('data-tab')))); document.getElementById('despParcelada')?.addEventListener('change',()=>{ document.getElementById('parcelasInputRow').style.display=document.getElementById('despParcelada').checked?'block':'none'; }); document.getElementById('despFixa')?.addEventListener('change',()=>{ if(document.getElementById('despFixa').checked) document.getElementById('despParcelada').checked=false; document.getElementById('parcelasInputRow').style.display='none'; });
-    
-    document.getElementById('despCat')?.addEventListener('change', (e) => {
-        let inputRow = document.getElementById('customCatInputRow');
-        if(e.target.value === '📦 Outros') { inputRow.style.display = 'block'; document.getElementById('despCustomCat').focus(); } 
-        else { inputRow.style.display = 'none'; document.getElementById('despCustomCat').value = ''; }
-    });
-
+    document.getElementById('despCat')?.addEventListener('change', (e) => { let inputRow = document.getElementById('customCatInputRow'); if(e.target.value === '📦 Outros') { inputRow.style.display = 'block'; document.getElementById('despCustomCat').focus(); } else { inputRow.style.display = 'none'; document.getElementById('despCustomCat').value = ''; } });
     document.getElementById('configBtn')?.addEventListener('click',(e)=>{ e.stopPropagation(); let m=document.getElementById('configMenu'); m.style.display=m.style.display==='none'?'block':'none'; document.getElementById('notifMenu').style.display='none'; hideAllCentralModals(); }); 
     document.getElementById('notificationBtn')?.addEventListener('click',(e)=>{ e.stopPropagation(); let m=document.getElementById('notifMenu'); renderNotifications(); m.style.display=m.style.display==='none'?'block':'none'; document.getElementById('configMenu').style.display='none'; hideAllCentralModals(); });
-    
-    document.getElementById('achievementsTriggerBtn')?.addEventListener('click', (e) => {
-        e.stopPropagation(); document.getElementById('configMenu').style.display = 'none';
-        checkAndRenderAchievements(); hideAllCentralModals();
-        document.getElementById('achievementsMenu').style.display = 'block';
-        document.body.classList.add('modal-open');
-    });
-
-    document.getElementById('backupTriggerBtn')?.addEventListener('click', (e) => {
-        e.stopPropagation(); document.getElementById('configMenu').style.display = 'none';
-        hideAllCentralModals(); document.getElementById('backupActionMenu').style.display = 'block';
-        document.body.classList.add('modal-open');
-    });
-
-    document.getElementById('statsTriggerBtn')?.addEventListener('click', (e) => {
-        e.stopPropagation(); document.getElementById('configMenu').style.display = 'none';
-        calculateAndRenderStatisticsMenu(); hideAllCentralModals();
-        document.getElementById('statisticsMenu').style.display = 'block';
-        document.body.classList.add('modal-open');
-    });
-
-    document.getElementById('themeTriggerBtn')?.addEventListener('click', (e) => {
-        e.stopPropagation(); document.getElementById('configMenu').style.display = 'none';
-        hideAllCentralModals(); document.getElementById('themeDropdownMenu').style.display = 'block';
-        document.body.classList.add('modal-open');
-    });
-
-    document.getElementById('resetTriggerBtn')?.addEventListener('click', (e) => {
-        e.stopPropagation(); launchCustomResetWorkflow();
-    });
+    document.getElementById('achievementsTriggerBtn')?.addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('configMenu').style.display = 'none'; checkAndRenderAchievements(); hideAllCentralModals(); document.getElementById('achievementsMenu').style.display = 'block'; document.body.classList.add('modal-open'); });
+    document.getElementById('backupTriggerBtn')?.addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('configMenu').style.display = 'none'; hideAllCentralModals(); document.getElementById('backupActionMenu').style.display = 'block'; document.body.classList.add('modal-open'); });
+    document.getElementById('statsTriggerBtn')?.addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('configMenu').style.display = 'none'; calculateAndRenderStatisticsMenu(); hideAllCentralModals(); document.getElementById('statisticsMenu').style.display = 'block'; document.body.classList.add('modal-open'); });
+    document.getElementById('themeTriggerBtn')?.addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('configMenu').style.display = 'none'; hideAllCentralModals(); document.getElementById('themeDropdownMenu').style.display = 'block'; document.body.classList.add('modal-open'); });
+    document.getElementById('resetTriggerBtn')?.addEventListener('click', (e) => { e.stopPropagation(); launchCustomResetWorkflow(); });
 
     window.addEventListener('click',(e)=>{ 
         if(!e.target.closest('#configBtn') && !e.target.closest('#configMenu')) document.getElementById('configMenu').style.display='none'; 
         if(!e.target.closest('#notificationBtn') && !e.target.closest('#notifMenu')) document.getElementById('notifMenu').style.display='none'; 
-        
         if(e.target.closest('.delete-btn') || e.target.closest('.fas.fa-trash')) return;
-
         if(!e.target.closest('#achievementsTriggerBtn') && !e.target.closest('#achievementsMenu')) { if(document.getElementById('achievementsMenu').style.display==='block') document.body.classList.remove('modal-open'); document.getElementById('achievementsMenu').style.display='none'; }
         if(!e.target.closest('#backupTriggerBtn') && !e.target.closest('#backupActionMenu')) { if(document.getElementById('backupActionMenu').style.display==='block') document.body.classList.remove('modal-open'); document.getElementById('backupActionMenu').style.display='none'; }
         if(!e.target.closest('#statsTriggerBtn') && !e.target.closest('#statisticsMenu')) { if(document.getElementById('statisticsMenu').style.display==='block') document.body.classList.remove('modal-open'); document.getElementById('statisticsMenu').style.display='none'; }
