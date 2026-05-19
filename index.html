@@ -240,7 +240,6 @@
             width: 300px;
         }
 
-        /* Modais centrais unificados */
         #deleteConfirmMenu, #resetConfirmMenu, #achievementsMenu, #statisticsMenu, #backupActionMenu, #themeDropdownMenu {
             position: fixed;
             top: 50%;
@@ -935,7 +934,6 @@
         document.body.classList.remove('modal-open');
     }
 
-    // Chamada segura da lixeira corrigida usando aspas corretas na injeção do HTML
     function deleteTransaction(id, type) {
         pendingDeleteId = id; 
         pendingDeleteType = type;
@@ -1098,7 +1096,6 @@
         let recHtml=''; 
         [...monthData.receitas].sort((a,b)=>a.date.localeCompare(b.date)).forEach(r=>{ 
             if(r.desc.toLowerCase().includes(searchRec)) {
-                // Correção direta das aspas simples fixadas nas chamadas dinâmicas
                 recHtml+=`<div class="transaction-item"><div class="transaction-left"><div><strong>${escapeHtml(r.desc)}</strong><div style="font-size:0.7rem;">${r.date.split('-').reverse().join('/')}</div></div>${r.isFixa?'<span class="badge-clean">Fixa</span>':''}</div><div style="font-weight:700; color:var(--success);">${valuesHidden?'●●●●●':formatCurrency(r.val)}<button class="delete-btn" style="margin-left:10px;" onclick="deleteTransaction('${r.id}','receita')"><i class="fas fa-trash"></i></button></div></div>`; 
             }
         });
@@ -1116,7 +1113,7 @@
                 if(diff>=0&&diff<=2) { if(isUnread && !isSilenciado) unreadCount++; badge='<span class="badge-clean" style="background:var(--warning-light);">Vence em breve</span>'; } 
                 else if(diff<0&&dueDate.getMonth()===currentMonth) { if(isUnread && !isSilenciado) unreadCount++; badge='<span class="badge-clean" style="background:var(--danger-light);">Atrasada</span>'; }
             }
-            // Correção direta das aspas simples fixadas nas chamadas dinâmicas da despesa
+            // CORREGIDO: O identificador de exclusão dinâmico alterado para d.id de forma estável
             despHtml+=`<div class="transaction-item" style="${d.pago?'opacity:0.6;':''}"><div class="transaction-left"><input type="checkbox" ${d.pago?'checked':''} style="margin-right:6px;" onclick="togglePayment('${d.id}')"><div><span style="${d.pago?'text-decoration:line-through;':''}">${escapeHtml(d.desc)}</span><div style="font-size:0.7rem;">${d.date.split('-').reverse().join('/')} ${d.categoria?` • ${d.categoria}`:''}</div></div>${badge}</div><div style="font-weight:700; color:var(--danger);">${valuesHidden?'●●●●●':formatCurrency(d.val)}<button class="delete-btn" style="margin-left:10px;" onclick="deleteTransaction('${d.id}','despesa')"><i class="fas fa-trash"></i></button></div></div>`;
         });
         document.getElementById('listaDespesas').innerHTML=despHtml||'<div style="padding:1.5rem;text-align:center;color:var(--text-soft);">Nenhuma despesa</div>';
@@ -1159,8 +1156,31 @@
     function updateVisibilityButton(){ let btn=document.getElementById('visibilityBtn'); btn.innerHTML=valuesHidden?'<i class="fas fa-eye"></i>':'<i class="fas fa-eye-slash"></i>'; }
     function applyAppTheme(){ let real=selectedThemeSetting==='system'?window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light':selectedThemeSetting; document.documentElement.setAttribute('data-theme',real); if(chartInstance) updateChart(); }
     function setAppTheme(t){ selectedThemeSetting=t; localStorage.setItem('themeSetting',t); applyAppTheme(); hideAllCentralModals(); showToast(`Tema ${t}`,'info'); }
-    function exportBackup(){ let data={appId:'FINANCAS_PRO_2026',financeData,metaGastos,themeSetting:selectedThemeSetting,notificationLog,readNotificationsIds}; let a=document.createElement('a'); a.href='data:text/json,'+encodeURIComponent(JSON.stringify(data)); a.download=`financas_backup_${new Date().toISOString().slice(0,10)}.json`; a.click(); showToast('Backup exportado'); }
-    function importBackup(e){ let file=e.target.files[0]; if(!file)return; let fr=new FileReader(); fr.onload=ev=>{ let d=JSON.parse(ev.target.result); if(d.appId==='FINANCAS_PRO_2026'){ financeData=d.financeData; metaGastos=d.metaGastos||0; selectedThemeSetting=d.themeSetting||'system'; notificationLog=d.notificationLog||[]; readNotificationsIds=d.readNotificationsIds||[]; localStorage.setItem('financeData_2026',JSON.stringify(financeData)); localStorage.setItem('metaGastos_2026',metaGastos); localStorage.setItem('themeSetting',selectedThemeSetting); localStorage.setItem('notificationLog_2026',JSON.stringify(notificationLog)); localStorage.setItem('readNotificationsIds_2026',JSON.stringify(readNotificationsIds)); applyAppTheme(); updateUI(); updateChart(); showToast('Restaurado!'); } else showToast('Arquivo inválido','error'); }; fr.readAsText(file); }
+
+    // 🚀 ATUALIZADO: Motor de Exportação Robusto com Blob contra bloqueios mobile
+    function exportBackup(){ 
+        let data={appId:'FINANCAS_PRO_2026',financeData,metaGastos,themeSetting:selectedThemeSetting,notificationLog,readNotificationsIds}; 
+        let jsonString = JSON.stringify(data);
+        let blob = new Blob([jsonString], {type: "application/json"});
+        let blobUrl = URL.createObjectURL(blob);
+        
+        let a=document.createElement('a'); 
+        a.href=blobUrl; 
+        a.download=`financas_backup_${new Date().toISOString().slice(0,10)}.json`; 
+        document.body.appendChild(a);
+        a.click(); 
+        
+        // Limpeza de memória
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+        }, 100);
+        
+        hideAllCentralModals();
+        showToast('Backup salvo em Downloads!'); 
+    }
+
+    function importBackup(e){ let file=e.target.files[0]; if(!file)return; let fr=new FileReader(); fr.onload=ev=>{ let d=JSON.parse(ev.target.result); if(d.appId==='FINANCAS_PRO_2026'){ financeData=d.financeData; metaGastos=d.metaGastos||0; selectedThemeSetting=d.themeSetting||'system'; notificationLog=d.notificationLog||[]; readNotificationsIds=d.readNotificationsIds||[]; localStorage.setItem('financeData_2026',JSON.stringify(financeData)); localStorage.setItem('metaGastos_2026',metaGastos); localStorage.setItem('themeSetting',selectedThemeSetting); localStorage.setItem('notificationLog_2026',JSON.stringify(notificationLog)); localStorage.setItem('readNotificationsIds_2026',JSON.stringify(readNotificationsIds)); applyAppTheme(); updateUI(); updateChart(); hideAllCentralModals(); showToast('Restaurado!'); } else showToast('Arquivo inválido','error'); }; fr.readAsText(file); }
     function changeMeta(){ let v=parseFloat(document.getElementById('metaGastosInput').value); metaGastos=isNaN(v)?0:v; localStorage.setItem('metaGastos_2026',metaGastos); updateUI(); }
     function changeMonth(){ currentMonth=parseInt(document.getElementById('monthSelect').value); setInputsDate(); updateUI(); updateChart(); }
     function switchTab(tab){ document.getElementById('receitasPanel').style.display=tab==='receitas'?'grid':'none'; document.getElementById('despesasPanel').style.display=tab==='despesas'?'grid':'none'; document.querySelectorAll('.tab-modern').forEach(btn=>btn.classList.remove('active')); if(tab==='receitas') document.querySelector('.tab-modern[data-tab="receitas"]').classList.add('active'); else document.querySelector('.tab-modern[data-tab="despesas"]').classList.add('active'); }
@@ -1211,7 +1231,6 @@
         if(!e.target.closest('#configBtn') && !e.target.closest('#configMenu')) document.getElementById('configMenu').style.display='none'; 
         if(!e.target.closest('#notificationBtn') && !e.target.closest('#notifMenu')) document.getElementById('notifMenu').style.display='none'; 
         
-        // Proteção contra falsos fechamentos imediatos nos cliques da lixeira (.delete-btn ou ícone interno)
         if(e.target.closest('.delete-btn') || e.target.closest('.fas.fa-trash')) return;
 
         if(!e.target.closest('#achievementsTriggerBtn') && !e.target.closest('#achievementsMenu')) { if(document.getElementById('achievementsMenu').style.display==='block') document.body.classList.remove('modal-open'); document.getElementById('achievementsMenu').style.display='none'; }
